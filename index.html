@@ -1,68 +1,251 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Galeri Titik Balik</title>
-  <meta name="description" content="Galeri Titik Balik - unggah, seret-lepas, dan lihat dalam tampilan penuh." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg: #0b1020;
-      --panel: #111833;
-      --muted: #a7b0c0;
-      --text: #e9eef8;
-      --brand: #8ab4ff;
-      --ring: rgba(138,180,255,.35);
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color:var(--text);
-      background:radial-gradient(1200px 800px at 80% -10%, #1a2449 0%, var(--bg) 50%, var(--bg) 100%);
+    header {
+      background: #4a90e2;
+      color: white;
+      padding: 20px;
+      position: relative;
     }
-    header{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter:saturate(140%) blur(10px);
-      background:linear-gradient(180deg, rgba(11,16,32,.9), rgba(11,16,32,.6));
-      border-bottom:1px solid rgba(255,255,255,.05);
+    h1 {
+      margin: 0;
     }
-    .wrap{max-width:1100px; margin:0 auto; padding:20px;}
-    .title{display:flex; align-items:center; gap:14px}
-    .title h1{margin:0; font-weight:700; font-size:1.5rem;}
-    .gallery{
-      display:grid;
-      grid-template-columns: repeat(auto-fill,minmax(250px,1fr));
-      gap:16px;
-      padding:20px;
+
+    /* Foto profil */
+    .profile-container {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .gallery img{
-      width:100%;
-      border-radius:12px;
-      box-shadow:0 4px 12px rgba(0,0,0,.4);
-      transition:transform .3s ease;
+    .profile-pic {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    .gallery img:hover{transform:scale(1.05);}
+
+    /* Menu */
+    nav {
+      background: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    nav button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background: #4a90e2;
+      color: white;
+      cursor: pointer;
+    }
+    nav button:hover {
+      background: #357abd;
+    }
+
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed #4a90e2;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 30px;
+      background: white;
+      cursor: pointer;
+      color: #555;
+    }
+    .upload-area.dragover {
+      background: #eaf4ff;
+      border-color: #2d7be0;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .gallery-item {
+      position: relative;
+    }
+    .gallery img {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+      line-height: 26px;
+    }
+    .delete-btn:hover {
+      background: red;
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap title">
-      <h1>Galeri Titik Balik</h1>
+    <h1>Galeri Titik Balik</h1>
+    <p>Tarik & lepas gambar ke area bawah untuk menambah foto</p>
+
+    <!-- Foto Profil -->
+    <div class="profile-container">
+      <img src="https://via.placeholder.com/60" alt="Profile" id="profile-pic" class="profile-pic">
     </div>
   </header>
 
-  <main>
-    <div class="wrap">
-      <p>Unggah dan simpan momen berharga di sini.</p>
-      <div class="gallery">
-        <!-- Foto akan tampil di sini setelah kamu upload -->
-      </div>
-    </div>
-  </main>
+  <!-- Menu -->
+  <nav>
+    <button onclick="document.getElementById('profile-input').click()">Ganti Foto Profil</button>
+    <button onclick="resetProfile()">Hapus Foto Profil</button>
+    <input type="file" id="profile-input" accept="image/*" hidden>
+  </nav>
+
+  <!-- Area Upload Galeri -->
+  <div class="upload-area" id="upload-area">
+    <p>📷 Drag & Drop gambar di sini atau klik untuk memilih file</p>
+    <input type="file" id="file-input" accept="image/*" multiple hidden>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+
+  <script>
+    const uploadArea = document.getElementById("upload-area");
+    const fileInput = document.getElementById("file-input");
+    const gallery = document.getElementById("gallery");
+
+    const profilePic = document.getElementById("profile-pic");
+    const profileInput = document.getElementById("profile-input");
+
+    const defaultProfile = "https://via.placeholder.com/60";
+
+    // ======== FOTO PROFIL =========
+    profileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          profilePic.src = ev.target.result;
+          localStorage.setItem("profileImage", ev.target.result);
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function resetProfile() {
+      profilePic.src = defaultProfile;
+      localStorage.removeItem("profileImage");
+    }
+
+    function loadProfile() {
+      const saved = localStorage.getItem("profileImage");
+      if (saved) {
+        profilePic.src = saved;
+      } else {
+        profilePic.src = defaultProfile;
+      }
+    }
+
+    // ======== GALERI =========
+    function saveToLocalStorage() {
+      const images = Array.from(gallery.querySelectorAll("img")).map(img => img.src);
+      localStorage.setItem("galleryImages", JSON.stringify(images));
+    }
+
+    function loadFromLocalStorage() {
+      const stored = localStorage.getItem("galleryImages");
+      if (stored) {
+        JSON.parse(stored).forEach(src => addImageToGallery(src));
+      }
+    }
+
+    function addImageToGallery(src) {
+      const item = document.createElement("div");
+      item.classList.add("gallery-item");
+
+      const img = document.createElement("img");
+      img.src = src;
+
+      const btn = document.createElement("button");
+      btn.classList.add("delete-btn");
+      btn.innerHTML = "✖";
+      btn.onclick = function() {
+        item.remove();
+        saveToLocalStorage();
+      };
+
+      item.appendChild(img);
+      item.appendChild(btn);
+      gallery.appendChild(item);
+    }
+
+    function previewImage(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        addImageToGallery(e.target.result);
+        saveToLocalStorage();
+      }
+      reader.readAsDataURL(file);
+    }
+
+    uploadArea.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+      for (const file of e.target.files) {
+        previewImage(file);
+      }
+    });
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.classList.remove("dragover");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      for (const file of e.dataTransfer.files) {
+        previewImage(file);
+      }
+    });
+
+    // Load semua saat awal
+    loadProfile();
+    loadFromLocalStorage();
+  </script>
 </body>
 </html>
