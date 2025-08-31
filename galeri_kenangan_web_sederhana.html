@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Galeri Kenangan</title>
+  <meta name="description" content="Galeri foto kenangan sederhana—unggah, seret-lepas, dan lihat dalam tampilan penuh." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #111833;
+      --muted: #a7b0c0;
+      --text: #e9eef8;
+      --brand: #8ab4ff;
+      --ring: rgba(138,180,255,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background:radial-gradient(1200px 800px at 80% -10%, #1a2449 0%, var(--bg) 50%, var(--bg) 100%);
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter:saturate(140%) blur(10px);
+      background:linear-gradient(180deg, rgba(11,16,32,.9), rgba(11,16,32,.6));
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:20px;}
+    .title{display:flex; align-items:center; gap:14px}
+    .logo{width:36px; height:36px; border-radius:12px; background:linear-gradient(135deg,#89f7fe,#66a6ff); box-shadow:0 6px 20px rgba(102,166,255,.35)}
+    h1{font-size:clamp(20px,3.2vw,28px); margin:0; letter-spacing:.3px}
+    .desc{color:var(--muted); font-size:14px; margin:6px 0 0}
+
+    .controls{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px}
+    button, .file-label{
+      appearance:none; border:0; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600; letter-spacing:.2px;
+      background:var(--panel); color:var(--text); border:1px solid rgba(255,255,255,.08); box-shadow:0 6px 20px rgba(0,0,0,.25);
+      transition:transform .04s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    button:hover, .file-label:hover{border-color:rgba(138,180,255,.35)}
+    button:active, .file-label:active{transform:translateY(1px)}
+
+    .file-input{display:none}
+    .file-label{display:inline-flex; align-items:center; gap:8px}
+
+    .dropzone{
+      margin-top:16px; padding:18px; border:1.5px dashed rgba(255,255,255,.18); border-radius:16px; background:rgba(255,255,255,.02);
+      color:var(--muted); text-align:center; transition:border-color .2s ease, background .2s ease;
+    }
+    .dropzone.dragover{border-color:var(--brand); background:rgba(138,180,255,.05)}
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px; margin:18px 0 60px}
+    .card{position:relative; overflow:hidden; border-radius:16px; background:#0e142c; border:1px solid rgba(255,255,255,.08)}
+    .card img{width:100%; height:220px; object-fit:cover; display:block; filter:saturate(1.05)}
+    .card figcaption{position:absolute; left:0; right:0; bottom:0; font-size:12px; padding:8px 10px; color:#dbe7ff; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(7,10,20,.6) 40%, rgba(7,10,20,.85));}
+    .card:hover img{transform:scale(1.04); transition:transform .35s ease}
+
+    /* Lightbox */
+    .lightbox{position:fixed; inset:0; display:none; place-items:center; background:rgba(4,6,14,.88); z-index:50}
+    .lightbox.open{display:grid}
+    .lb-content{position:relative; width:min(96vw,1100px); height:min(86vh,800px); display:flex; align-items:center; justify-content:center}
+    .lb-img{max-width:100%; max-height:100%; border-radius:16px; box-shadow:0 20px 80px rgba(0,0,0,.45);}
+    .lb-caption{position:absolute; left:0; right:0; bottom:-44px; text-align:center; color:var(--muted); font-size:14px}
+    .lb-close, .nav{
+      position:absolute; top:10px; padding:10px 12px; border-radius:12px; background:rgba(17,24,51,.82); border:1px solid rgba(255,255,255,.12); cursor:pointer;
+    }
+    .lb-close{right:10px}
+    .nav{top:calc(50% - 22px)}
+    .nav.prev{left:6px} .nav.next{right:6px}
+
+    footer{color:var(--muted); text-align:center; margin:40px 0 24px; font-size:12px}
+    .hint{opacity:.9}
+
+    /* Small helpers */
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Galeri Kenangan</h1>
+          <p class="desc">Situs sederhana untuk menyimpan dan memamerkan momen berharga. Unggah foto, seret & lepas, lalu klik untuk melihat penuh.</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label class="file-label" for="file-input" title="Unggah foto dari perangkat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0 4 4m-4-4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16.5v2a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>Tambah Foto</span>
+        </label>
+        <input id="file-input" class="file-input" type="file" accept="image/*" multiple />
+        <button id="clear-btn" title="Hapus foto yang ditambahkan saat ini">Bersihkan</button>
+      </div>
+
+      <div id="dropzone" class="dropzone" aria-label="Zona seret & lepas">
+        Seret & lepas foto ke sini, atau gunakan tombol <strong>Tambah Foto</strong> di atas.
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Ganti URL gambar contoh dengan foto kenangan Anda sendiri. 
+         Jika Anda ingin menaruh file lokal, letakkan di folder "images" lalu ganti atribut src di bawah. -->
+    <section id="gallery" class="grid" aria-label="Galeri Foto">
+      <!-- Contoh awal (bisa dihapus) -->
+      <figure class="card"><img loading="lazy" src="https://picsum.photos/id/1018/800/600" alt="Pantai senja"><figcaption>Bersama di tepi pantai (2019)</figcaption></figure>
+      <figure class="card"><img loading="lazy" src="https://picsum.photos/id/1005/800/600" alt="Pegunungan hijau"><figcaption>Naik ke puncak—camp pertama</figcaption></figure>
+      <figure class="card"><img loading="lazy" src="https://picsum.photos/id/1025/800/600" alt="Jalan kota malam"><figcaption>Malam minggu di kota</figcaption></figure>
+    </section>
+  </main>
+
+  <!-- Lightbox / Viewer -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-labelledby="lb-caption">
+    <div class="lb-content">
+      <img id="lb-img" class="lb-img" alt="Pratinjau foto" />
+      <div id="lb-caption" class="lb-caption"></div>
+      <button class="lb-close" aria-label="Tutup (Esc)">Tutup ✕</button>
+      <button class="nav prev" aria-label="Sebelumnya">◀</button>
+      <button class="nav next" aria-label="Berikutnya">▶</button>
+    </div>
+  </div>
+
+  <footer>
+    <p class="hint">Tip: klik foto untuk tampilan penuh • Gunakan tombol ◀ ▶ atau ← → untuk navigasi, Esc untuk menutup.</p>
+    <p>© <span id="year"></span> — Galeri Kenangan</p>
+  </footer>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+    const fileInput = document.getElementById('file-input');
+    const dropzone = document.getElementById('dropzone');
+    const clearBtn = document.getElementById('clear-btn');
+
+    const lightbox = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lb-img');
+    const lbCaption = document.getElementById('lb-caption');
+    const btnClose = document.querySelector('.lb-close');
+    const btnPrev = document.querySelector('.nav.prev');
+    const btnNext = document.querySelector('.nav.next');
+
+    let currentIndex = -1;
+
+    // Utility: create a card element
+    function createCard(src, alt = '', caption = ''){
+      const fig = document.createElement('figure');
+      fig.className = 'card';
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = src; img.alt = alt || 'Foto kenangan';
+      const fc = document.createElement('figcaption');
+      fc.textContent = caption || alt || '—';
+      fig.appendChild(img); fig.appendChild(fc);
+      return fig;
+    }
+
+    // Open lightbox
+    function openLightbox(i){
+      const items = [...gallery.querySelectorAll('.card img')];
+      if(!items[i]) return;
+      currentIndex = i;
+      lbImg.src = items[i].src;
+      lbImg.alt = items[i].alt || '';
+      lbCaption.textContent = items[i].closest('figure').querySelector('figcaption')?.textContent || '';
+      lightbox.classList.add('open');
+    }
+    function closeLightbox(){ lightbox.classList.remove('open'); }
+
+    function showNext(delta){
+      const items = [...gallery.querySelectorAll('.card img')];
+      if(items.length === 0) return;
+      currentIndex = (currentIndex + delta + items.length) % items.length;
+      lbImg.src = items[currentIndex].src;
+      lbImg.alt = items[currentIndex].alt || '';
+      lbCaption.textContent = items[currentIndex].closest('figure').querySelector('figcaption')?.textContent || '';
+    }
+
+    // Click handlers for gallery -> open lightbox
+    gallery.addEventListener('click', (e)=>{
+      const img = e.target.closest('img');
+      if(!img) return;
+      const nodes = [...gallery.querySelectorAll('.card img')];
+      const idx = nodes.indexOf(img);
+      openLightbox(idx);
+    });
+
+    // Lightbox controls
+    btnClose.addEventListener('click', closeLightbox);
+    btnPrev.addEventListener('click', ()=>showNext(-1));
+    btnNext.addEventListener('click', ()=>showNext(1));
+    lightbox.addEventListener('click', (e)=>{
+      // click outside image closes
+      if(e.target === lightbox) closeLightbox();
+    });
+    window.addEventListener('keydown', (e)=>{
+      if(!lightbox.classList.contains('open')) return;
+      if(e.key === 'Escape') closeLightbox();
+      if(e.key === 'ArrowRight') showNext(1);
+      if(e.key === 'ArrowLeft') showNext(-1);
+    });
+
+    // File input (upload from device, no server)
+    fileInput.addEventListener('change', async (e)=>{
+      const files = [...e.target.files];
+      await addFiles(files);
+      fileInput.value = '';
+    });
+
+    // Drag & drop
+    ;['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, (e)=>{e.preventDefault(); dropzone.classList.add('dragover')}));
+    ;['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, (e)=>{e.preventDefault(); dropzone.classList.remove('dragover')}));
+    dropzone.addEventListener('drop', async (e)=>{
+      const files = [...e.dataTransfer.files].filter(f=>f.type.startsWith('image/'));
+      await addFiles(files);
+    });
+
+    async function addFiles(files){
+      for(const file of files){
+        const url = await readFileAsDataURL(file);
+        const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g,' ');
+        const card = createCard(url, name, name);
+        gallery.prepend(card); // terbaru di depan
+      }
+    }
+    function readFileAsDataURL(file){
+      return new Promise((res, rej)=>{
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = rej; fr.readAsDataURL(file);
+      });
+    }
+
+    clearBtn.addEventListener('click', ()=>{
+      // Hanya menghapus foto yang ditambahkan saat sesi berjalan (data URL). Contoh bawaan tetap.
+      const added = gallery.querySelectorAll('.card img[src^="data:"]');
+      added.forEach(img=> img.closest('.card').remove());
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
